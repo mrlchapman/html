@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Who Wants to Be an AI Safety Millionaire?</title>
+  <style>
+    :root {
+      --bg1:#050024; --bg2:#0b1f5e; --gold:#ffd761; --gold2:#f7b733; --white:#ffffff; --blue:#102a83; --deep:#05062d; --green:#1fa463; --red:#c63d3d; --amber:#d6901f;
+    }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family: Arial, Helvetica, sans-serif; background: radial-gradient(circle at top, var(--bg2), var(--bg1) 60%); color:var(--white); min-height:100vh; }
+    .app { max-width:1200px; margin:0 auto; padding:20px; display:grid; grid-template-columns: 1fr 270px; gap:18px; }
+    header { grid-column:1 / -1; text-align:center; padding:12px 8px 6px; }
+    h1 { margin:0; color:var(--gold); font-size:clamp(1.7rem, 4vw, 3rem); text-shadow:0 0 18px rgba(255,215,97,.45); }
+    .subtitle { margin:8px 0 0; opacity:.92; }
+    .stage { background:rgba(3,8,42,.78); border:2px solid rgba(255,215,97,.38); border-radius:22px; padding:22px; box-shadow:0 0 35px rgba(0,0,0,.35); }
+    .topbar { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:18px; }
+    .badge { border:1px solid rgba(255,215,97,.55); color:var(--gold); border-radius:999px; padding:8px 12px; font-weight:bold; background:rgba(255,255,255,.06); }
+    .lifelines { display:flex; gap:8px; flex-wrap:wrap; }
+    button { cursor:pointer; border:0; border-radius:999px; font-weight:bold; }
+    .lifeline { padding:9px 12px; background:linear-gradient(180deg, var(--gold), var(--gold2)); color:#1d1300; }
+    .lifeline:disabled { opacity:.45; cursor:not-allowed; filter:grayscale(1); }
+    .question { margin:26px 0 20px; padding:22px; border:2px solid rgba(255,215,97,.55); border-radius:18px; background:linear-gradient(180deg, #142f96, #07124a); font-size:clamp(1.18rem, 2.2vw, 1.65rem); line-height:1.35; text-align:center; }
+    .answers { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .answer { min-height:74px; padding:14px 18px; border:2px solid rgba(255,215,97,.42); border-radius:16px; background:linear-gradient(180deg, #0f2882, #070d3a); color:var(--white); font-size:1rem; text-align:left; transition: transform .12s ease, background .12s ease; }
+    .answer:hover:not(:disabled) { transform:translateY(-2px); border-color:var(--gold); }
+    .answer.selected { background:linear-gradient(180deg, #d6901f, #a65f00); }
+    .answer.correct { background:linear-gradient(180deg, #21b76f, #0a6d3b); }
+    .answer.wrong { background:linear-gradient(180deg, #d45151, #7a1616); }
+    .answer:disabled { cursor:not-allowed; }
+    .letter { color:var(--gold); margin-right:8px; font-weight:bold; }
+    .controls { margin-top:18px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .primary { padding:12px 18px; background:linear-gradient(180deg, var(--gold), var(--gold2)); color:#1d1300; }
+    .secondary { padding:12px 18px; background:#233d91; color:var(--white); border:1px solid rgba(255,255,255,.25); }
+    .message { min-height:58px; margin-top:16px; padding:14px; border-radius:14px; background:rgba(255,255,255,.08); line-height:1.45; }
+    aside { background:rgba(3,8,42,.72); border:2px solid rgba(255,215,97,.32); border-radius:22px; padding:16px; }
+    aside h2 { margin:4px 0 12px; color:var(--gold); font-size:1.05rem; text-align:center; }
+    .money { list-style:none; padding:0; margin:0; display:flex; flex-direction:column-reverse; gap:5px; }
+    .money li { display:flex; justify-content:space-between; gap:8px; padding:6px 10px; border-radius:999px; background:rgba(255,255,255,.06); font-weight:bold; }
+    .money li.current { background:linear-gradient(180deg, var(--gold), var(--gold2)); color:#1d1300; }
+    .money li.safe { color:#9ff0c2; }
+    .start { text-align:center; padding:26px; }
+    .start p { max-width:720px; margin:12px auto; line-height:1.5; }
+    .hidden { display:none !important; }
+    .audience-bars { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:10px; align-items:end; min-height:120px; }
+    .bar-wrap { display:flex; flex-direction:column; align-items:center; gap:6px; }
+    .bar { width:100%; min-height:8px; background:linear-gradient(180deg, var(--gold), var(--gold2)); border-radius:8px 8px 0 0; }
+    .small { font-size:.88rem; opacity:.86; }
+    @media (max-width: 850px) { .app { grid-template-columns:1fr; } aside { order:3; } .answers { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>Who Wants to Be an AI Safety Millionaire?</h1>
+      <p class="subtitle">A quick staff training game on safe AI use in education and teacher practice.</p>
+    </header>
+
+    <main class="stage">
+      <section id="start" class="start">
+        <h2>Ready to play?</h2>
+        <p>Answer 15 questions, climb the money ladder, and reinforce safe, transparent and human-led AI practice. Use the lifelines if you get stuck.</p>
+        <button class="primary" onclick="startGame()">Start game</button>
+      </section>
+
+      <section id="game" class="hidden">
+        <div class="topbar">
+          <span class="badge" id="progress">Question 1 of 15</span>
+          <span class="badge" id="currentMoney">£100</span>
+          <div class="lifelines" aria-label="Lifelines">
+            <button class="lifeline" id="fifty" onclick="useFifty()">50:50</button>
+            <button class="lifeline" id="audience" onclick="useAudience()">Ask the audience</button>
+            <button class="lifeline" id="hint" onclick="useHint()">Hint</button>
+          </div>
+        </div>
+
+        <div class="question" id="questionText"></div>
+        <div class="answers" id="answers"></div>
+        <div id="audiencePanel" class="message hidden"></div>
+        <div class="controls">
+          <button class="primary" id="nextBtn" onclick="nextQuestion()" disabled>Final answer</button>
+          <button class="secondary" onclick="restartGame()">Restart</button>
+        </div>
+        <div class="message" id="message">Choose an answer, then select <strong>Final answer</strong>.</div>
+      </section>
+
+      <section id="end" class="start hidden">
+        <h2 id="endTitle">Game over</h2>
+        <p id="endMessage"></p>
+        <button class="primary" onclick="restartGame()">Play again</button>
+      </section>
+    </main>
+
+    <aside>
+      <h2>Money ladder</h2>
+      <ol class="money" id="moneyList"></ol>
+      <p class="small">Safe points: £1,000 and £32,000.</p>
+    </aside>
+  </div>
+
+  <script>
+    const questions = [
+      {
+            "question": "What should a teacher do before putting student work into an AI tool?",
+            "options": [
+                  "Upload it if the tool is popular",
+                  "Check that the use is approved and permissions/IP are addressed",
+                  "Remove the student's name only",
+                  "Ask the class to vote"
+            ],
+            "answer": 1,
+            "explanation": "Student work should not be uploaded to AI tools unless the use has been approved and permission and intellectual property have been addressed."
+      },
+      {
+            "question": "Which type of information should never be entered into an unapproved AI tool?",
+            "options": [
+                  "Publicly available information",
+                  "Generic lesson ideas",
+                  "Personal, confidential, safeguarding or student data",
+                  "A grammar-check request"
+            ],
+            "answer": 2,
+            "explanation": "Personal, confidential, safeguarding and student data must not be used in unapproved AI tools."
+      },
+      {
+            "question": "What is the safest role for AI in teacher decision-making?",
+            "options": [
+                  "Replace the teacher's judgement",
+                  "Make final assessment decisions",
+                  "Support human judgement",
+                  "Decide learner support needs automatically"
+            ],
+            "answer": 2,
+            "explanation": "AI should support professional judgement, not replace it."
+      },
+      {
+            "question": "A free AI website offers to summarise a spreadsheet of learner support needs. What is the safest response?",
+            "options": [
+                  "Use it because it is free",
+                  "Paste the spreadsheet but remove headings",
+                  "Assume it is not safe for College data until proven otherwise",
+                  "Use it only outside working hours"
+            ],
+            "answer": 2,
+            "explanation": "If a tool is free, assume it is not safe for College data until it has been checked and approved."
+      },
+      {
+            "question": "What should staff do with AI-generated teaching content before using it with learners?",
+            "options": [
+                  "Publish it immediately",
+                  "Check it for accuracy, bias, tone and appropriateness",
+                  "Use it only if it sounds confident",
+                  "Ask AI to mark itself"
+            ],
+            "answer": 1,
+            "explanation": "AI outputs should always be checked carefully before use."
+      },
+      {
+            "question": "Which tool choice is safest for College work?",
+            "options": [
+                  "A personal AI account",
+                  "An unapproved browser extension",
+                  "A College-approved tool and account",
+                  "Any tool recommended on social media"
+            ],
+            "answer": 2,
+            "explanation": "Staff should use approved College routes and accounts wherever possible."
+      },
+      {
+            "question": "A teacher wants AI to give feedback directly on assessed student work. What should happen first?",
+            "options": [
+                  "Go ahead if it saves time",
+                  "Ask for approval because this is higher-risk",
+                  "Use a personal account",
+                  "Tell students it is optional"
+            ],
+            "answer": 1,
+            "explanation": "AI feedback on student work is a higher-risk use and should go through the relevant approval route."
+      },
+      {
+            "question": "Which of these is a low-risk use of AI for teachers?",
+            "options": [
+                  "Analysing safeguarding notes",
+                  "Drafting a generic worksheet starter with no personal data",
+                  "Making admissions decisions",
+                  "Summarising HR casework"
+            ],
+            "answer": 1,
+            "explanation": "Routine drafting with non-sensitive content is generally lower risk than using AI with personal data or decisions."
+      },
+      {
+            "question": "What should students be encouraged to do when they use AI outputs?",
+            "options": [
+                  "Accept outputs as factual",
+                  "Critically check outputs for bias, misinformation and limitations",
+                  "Hide all AI use",
+                  "Use AI to avoid learning"
+            ],
+            "answer": 1,
+            "explanation": "Safe AI practice includes critical thinking about bias, misinformation and limitations."
+      },
+      {
+            "question": "Why is transparency important when using AI in education?",
+            "options": [
+                  "It replaces all assessment rules",
+                  "It helps maintain academic integrity and trust",
+                  "It means AI is always correct",
+                  "It removes the need for teacher review"
+            ],
+            "answer": 1,
+            "explanation": "Being clear about appropriate AI use supports trust, academic integrity and responsible learning."
+      },
+      {
+            "question": "An AI tool produces a convincing but inaccurate explanation. What is this an example of?",
+            "options": [
+                  "A reason to trust confident wording",
+                  "A reminder that outputs need checking",
+                  "Proof the teacher asked the wrong question",
+                  "A feature only students need to worry about"
+            ],
+            "answer": 1,
+            "explanation": "AI can be wrong even when it sounds confident, so staff should verify outputs before use."
+      },
+      {
+            "question": "Which use is most likely to need extra approval?",
+            "options": [
+                  "Creating a generic quiz about photosynthesis",
+                  "Improving the structure of a public blog post",
+                  "Analysing attendance, behaviour or wellbeing data",
+                  "Drafting a non-confidential email template"
+            ],
+            "answer": 2,
+            "explanation": "AI use involving attendance, behaviour or wellbeing data is higher-risk and should be approved."
+      },
+      {
+            "question": "What should a teacher do if they are unsure whether an AI use is safe?",
+            "options": [
+                  "Try it with a small group first",
+                  "Ask before using it",
+                  "Use a personal account",
+                  "Only use it at home"
+            ],
+            "answer": 1,
+            "explanation": "If in doubt, ask before using AI with College data, student work or sensitive contexts."
+      },
+      {
+            "question": "Which statement best describes safe AI use in teaching?",
+            "options": [
+                  "AI should automate professional decisions",
+                  "AI should be hidden from learners",
+                  "AI should be governed, transparent and reviewed by humans",
+                  "AI should be used only by IT staff"
+            ],
+            "answer": 2,
+            "explanation": "Safe use means governance, transparency, human oversight and appropriate review."
+      },
+      {
+            "question": "For the £1 million question: what is the golden principle for teachers using AI safely?",
+            "options": [
+                  "Speed matters more than scrutiny",
+                  "Use AI to augment, not replace, human expertise and responsibility",
+                  "Free tools are fine for all College data",
+                  "If the answer looks professional, it is safe"
+            ],
+            "answer": 1,
+            "explanation": "AI should augment human expertise and responsibility. The teacher remains accountable for safe, appropriate use."
+      }
+];
+    const money = ["£100","£200","£300","£500","£1,000","£2,000","£4,000","£8,000","£16,000","£32,000","£64,000","£125,000","£250,000","£500,000","£1,000,000"];
+    let current = 0;
+    let selected = null;
+    let locked = false;
+    let used = { fifty:false, audience:false, hint:false };
+
+    const letters = ["A", "B", "C", "D"];
+
+    function startGame() {
+      document.getElementById('start').classList.add('hidden');
+      document.getElementById('end').classList.add('hidden');
+      document.getElementById('game').classList.remove('hidden');
+      buildMoney();
+      renderQuestion();
+    }
+
+    function buildMoney() {
+      const list = document.getElementById('moneyList');
+      list.innerHTML = '';
+      money.forEach((m, i) => {
+        const li = document.createElement('li');
+        li.id = 'money-' + i;
+        li.className = (i === 4 || i === 9) ? 'safe' : '';
+        li.innerHTML = `<span>${i+1}</span><span>${m}</span>`;
+        list.appendChild(li);
+      });
+      updateMoney();
+    }
+
+    function updateMoney() {
+      money.forEach((_, i) => {
+        const el = document.getElementById('money-' + i);
+        if (el) el.classList.toggle('current', i === current);
+      });
+      document.getElementById('currentMoney').textContent = money[current];
+      document.getElementById('progress').textContent = `Question ${current + 1} of ${questions.length}`;
+    }
+
+    function renderQuestion() {
+      selected = null;
+      locked = false;
+      document.getElementById('nextBtn').disabled = true;
+      document.getElementById('message').innerHTML = 'Choose an answer, then select <strong>Final answer</strong>.';
+      document.getElementById('audiencePanel').classList.add('hidden');
+      document.getElementById('audiencePanel').innerHTML = '';
+      updateMoney();
+      const q = questions[current];
+      document.getElementById('questionText').textContent = q.question;
+      const answers = document.getElementById('answers');
+      answers.innerHTML = '';
+      q.options.forEach((option, index) => {
+        const btn = document.createElement('button');
+        btn.className = 'answer';
+        btn.id = 'answer-' + index;
+        btn.innerHTML = `<span class="letter">${letters[index]}:</span> ${option}`;
+        btn.onclick = () => selectAnswer(index);
+        answers.appendChild(btn);
+      });
+    }
+
+    function selectAnswer(index) {
+      if (locked) return;
+      selected = index;
+      document.querySelectorAll('.answer').forEach(btn => btn.classList.remove('selected'));
+      document.getElementById('answer-' + index).classList.add('selected');
+      document.getElementById('nextBtn').disabled = false;
+      document.getElementById('message').textContent = `You selected ${letters[index]}. Select Final answer to lock it in.`;
+    }
+
+    function nextQuestion() {
+      if (selected === null || locked) return;
+      locked = true;
+      const q = questions[current];
+      document.querySelectorAll('.answer').forEach(btn => btn.disabled = true);
+      document.getElementById('answer-' + q.answer).classList.add('correct');
+      if (selected !== q.answer) {
+        document.getElementById('answer-' + selected).classList.add('wrong');
+        setTimeout(() => endGame(false), 900);
+        document.getElementById('message').innerHTML = `<strong>Not quite.</strong> ${q.explanation}`;
+        return;
+      }
+      document.getElementById('message').innerHTML = `<strong>Correct.</strong> ${q.explanation}`;
+      if (current === questions.length - 1) {
+        setTimeout(() => endGame(true), 900);
+      } else {
+        document.getElementById('nextBtn').disabled = true;
+        setTimeout(() => { current++; renderQuestion(); }, 1300);
+      }
+    }
+
+    function guaranteedAmount() {
+      if (current >= 10) return money[9];
+      if (current >= 5) return money[4];
+      return '£0';
+    }
+
+    function endGame(won) {
+      document.getElementById('game').classList.add('hidden');
+      document.getElementById('end').classList.remove('hidden');
+      if (won) {
+        document.getElementById('endTitle').textContent = 'You are an AI Safety Millionaire!';
+        document.getElementById('endMessage').textContent = 'Brilliant. You completed all 15 questions and reinforced the key principles of safe AI practice in education.';
+      } else {
+        document.getElementById('endTitle').textContent = 'Game over';
+        document.getElementById('endMessage').textContent = `You leave with ${guaranteedAmount()}. Restart and try to climb the ladder again.`;
+      }
+    }
+
+    function restartGame() {
+      current = 0; selected = null; locked = false; used = { fifty:false, audience:false, hint:false };
+      ['fifty','audience','hint'].forEach(id => document.getElementById(id).disabled = false);
+      document.getElementById('end').classList.add('hidden');
+      document.getElementById('start').classList.remove('hidden');
+      document.getElementById('game').classList.add('hidden');
+      buildMoney();
+    }
+
+    function useFifty() {
+      if (used.fifty || locked) return;
+      used.fifty = true;
+      document.getElementById('fifty').disabled = true;
+      const q = questions[current];
+      const wrongs = [0,1,2,3].filter(i => i !== q.answer);
+      wrongs.sort(() => Math.random() - 0.5).slice(0,2).forEach(i => {
+        const btn = document.getElementById('answer-' + i);
+        btn.disabled = true;
+        btn.style.opacity = '.28';
+      });
+      document.getElementById('message').textContent = '50:50 used. Two incorrect answers have been removed.';
+    }
+
+    function useAudience() {
+      if (used.audience || locked) return;
+      used.audience = true;
+      document.getElementById('audience').disabled = true;
+      const q = questions[current];
+      let scores = [8, 10, 12, 14];
+      scores[q.answer] = 66;
+      let remaining = 100 - scores.reduce((a,b)=>a+b,0);
+      for (let i=0; i<4; i++) { if (i !== q.answer && remaining > 0) { const add = Math.min(remaining, Math.floor(Math.random()*8)); scores[i]+=add; remaining-=add; } }
+      scores[q.answer] += remaining;
+      const panel = document.getElementById('audiencePanel');
+      panel.classList.remove('hidden');
+      panel.innerHTML = '<strong>Audience says:</strong><div class="audience-bars">' + scores.map((s,i)=>`<div class="bar-wrap"><div class="bar" style="height:${s}px"></div><strong>${letters[i]}</strong><span>${s}%</span></div>`).join('') + '</div>';
+    }
+
+    function useHint() {
+      if (used.hint || locked) return;
+      used.hint = true;
+      document.getElementById('hint').disabled = true;
+      const q = questions[current];
+      document.getElementById('message').innerHTML = `<strong>Hint:</strong> ${q.explanation}`;
+    }
+  </script>
+</body>
+</html>
